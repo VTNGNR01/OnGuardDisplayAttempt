@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "GrokCodeFastBadgeIDAttempt/1.0.0": {
+        "runtime": {
+          "GrokCodeFastBadgeIDAttempt.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "GrokCodeFastBadgeIDAttempt/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,0 +1,14 @@
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\bin\Debug\net8.0\GrokCodeFastBadgeIDAttempt.exe
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\bin\Debug\net8.0\GrokCodeFastBadgeIDAttempt.deps.json
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\bin\Debug\net8.0\GrokCodeFastBadgeIDAttempt.runtimeconfig.json
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\bin\Debug\net8.0\GrokCodeFastBadgeIDAttempt.dll
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\bin\Debug\net8.0\GrokCodeFastBadgeIDAttempt.pdb
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.GeneratedMSBuildEditorConfig.editorconfig
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.AssemblyInfoInputs.cache
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.AssemblyInfo.cs
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.csproj.CoreCompileInputs.cache
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.dll
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\refint\GrokCodeFastBadgeIDAttempt.dll
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.pdb
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\GrokCodeFastBadgeIDAttempt.genruntimeconfig.cache
+C:\CodeAttempts\GrokCodeFastBadgeIDAttempt\GrokCodeFastBadgeIDAttempt\obj\Debug\net8.0\ref\GrokCodeFastBadgeIDAttempt.dll
