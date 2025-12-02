@@ -277,40 +277,52 @@ class Program
                     badgeItems = badgeDoc.RootElement.GetProperty("item_list").EnumerateArray();
                     int badgeCount = 0;
 
-                    foreach (var badge in badgeItems)
+                    // Only try to match badges if the cardholder has a valid EMPID
+                    bool hasValidEmpId = empId != "N/A" && !string.IsNullOrEmpty(empId);
+                    
+                    if (!hasValidEmpId)
                     {
-                        var badgeProps = badge.GetProperty("property_value_map");
-                        
-                        // Handle badge EMPID as both string and numeric
-                        string badgeEmpId = "N/A";
-                        if (badgeProps.TryGetProperty("EMPID", out var beid))
-                        {
-                            badgeEmpId = beid.ValueKind == JsonValueKind.Number 
-                                ? beid.GetInt64().ToString() 
-                                : beid.GetString() ?? "N/A";
-                        }
-
-                        if (badgeEmpId == empId)
-                        {
-                            var badgeId = GetBadgeId(badgeProps) ?? "N/A";
-                            badgeCount++;
-                            Console.WriteLine($"  • Badge ID {badgeId}");
-
-                            // Check if this matches our target badges
-                            if (targetBadgeIds.Contains(badgeId))
-                            {
-                                Console.WriteLine($"    🎯 This is one of your target badges!");
-                            }
-                        }
-                    }
-
-                    if (badgeCount == 0)
-                    {
-                        Console.WriteLine("  No badges found for this employee ID");
+                        Console.WriteLine("  ⚠️ Cardholder has no EMPID - cannot determine badge associations by EMPID");
+                        Console.WriteLine("  Note: Badge-to-cardholder associations may need to be verified through other means");
                     }
                     else
                     {
-                        Console.WriteLine($"  Total badges: {badgeCount}");
+                        foreach (var badge in badgeItems)
+                        {
+                            var badgeProps = badge.GetProperty("property_value_map");
+                            
+                            // Handle badge EMPID as both string and numeric
+                            string badgeEmpId = "N/A";
+                            if (badgeProps.TryGetProperty("EMPID", out var beid))
+                            {
+                                badgeEmpId = beid.ValueKind == JsonValueKind.Number 
+                                    ? beid.GetInt64().ToString() 
+                                    : beid.GetString() ?? "N/A";
+                            }
+
+                            // Only match if both have valid EMPIDs
+                            if (badgeEmpId != "N/A" && badgeEmpId == empId)
+                            {
+                                var badgeId = GetBadgeId(badgeProps) ?? "N/A";
+                                badgeCount++;
+                                Console.WriteLine($"  • Badge ID {badgeId}");
+
+                                // Check if this matches our target badges
+                                if (targetBadgeIds.Contains(badgeId))
+                                {
+                                    Console.WriteLine($"    🎯 This is one of your target badges!");
+                                }
+                            }
+                        }
+
+                        if (badgeCount == 0)
+                        {
+                            Console.WriteLine("  No badges found with valid matching EMPID");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"  Total badges: {badgeCount}");
+                        }
                     }
                     Console.WriteLine();
                 }
