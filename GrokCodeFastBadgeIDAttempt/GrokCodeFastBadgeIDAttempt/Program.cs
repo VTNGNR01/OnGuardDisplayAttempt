@@ -102,8 +102,49 @@ class Program
 
                 client.DefaultRequestHeaders.Add("Session-Token", sessionToken);
 
-                // Step 2: Look for specific badge IDs (607, 789, 613)
-                Console.WriteLine("[2] Looking for specific badge IDs: 607, 789, 613...");
+                // Step 2: First, fetch all cardholders to build a lookup dictionary by ID
+                Console.WriteLine("[2] Fetching cardholders for name lookup...");
+                var cardholderUrl = $"{baseUrl}/instances?type_name=Lnl_Cardholder&page_size=100&version=1.0";
+                var cardholderResponse = await client.GetAsync(cardholderUrl);
+
+                if (!cardholderResponse.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"❌ Cardholder query failed: {cardholderResponse.StatusCode}");
+                    var error = await cardholderResponse.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error: {error}");
+                    return;
+                }
+
+                var cardholderJson = await cardholderResponse.Content.ReadAsStringAsync();
+                var cardholderDoc = JsonDocument.Parse(cardholderJson);
+                
+                // Build a dictionary of cardholders by ID for quick lookup
+                var cardholderLookup = new System.Collections.Generic.Dictionary<string, (string FirstName, string LastName)>();
+                var cardholders = cardholderDoc.RootElement.GetProperty("item_list").EnumerateArray();
+                foreach (var cardholder in cardholders)
+                {
+                    var props = cardholder.GetProperty("property_value_map");
+                    string chId = "N/A";
+                    if (props.TryGetProperty("ID", out var idElement))
+                    {
+                        chId = idElement.ValueKind == JsonValueKind.Number 
+                            ? idElement.GetInt64().ToString() 
+                            : idElement.GetString() ?? "N/A";
+                    }
+                    
+                    var firstName = props.TryGetProperty("FIRSTNAME", out var fn) ? fn.GetString() ?? "" : "";
+                    var lastName = props.TryGetProperty("LASTNAME", out var ln) ? ln.GetString() ?? "" : "";
+                    
+                    if (chId != "N/A")
+                    {
+                        cardholderLookup[chId] = (firstName, lastName);
+                    }
+                }
+                Console.WriteLine($"✓ Loaded {cardholderLookup.Count} cardholders for name lookup");
+                Console.WriteLine();
+
+                // Step 3: Look for specific badge IDs (607, 789, 613)
+                Console.WriteLine("[3] Looking for specific badge IDs: 607, 789, 613...");
                 var badgeUrl = $"{baseUrl}/instances?type_name=Lnl_Badge&page_size=100&version=1.0";
                 var badgeResponse = await client.GetAsync(badgeUrl);
 
@@ -160,6 +201,24 @@ class Program
                         var badge = foundBadges[targetId];
                         var props = badge.GetProperty("property_value_map");
 
+                        // Show PERSONID and associated cardholder name
+                        string personId = "N/A";
+                        if (props.TryGetProperty("PERSONID", out var pid))
+                        {
+                            personId = pid.ValueKind == JsonValueKind.Number 
+                                ? pid.GetInt64().ToString() 
+                                : pid.GetString() ?? "N/A";
+                        }
+                        
+                        string cardholderName = "Unknown";
+                        if (personId != "N/A" && cardholderLookup.TryGetValue(personId, out var chInfo))
+                        {
+                            cardholderName = $"{chInfo.FirstName} {chInfo.LastName}".Trim();
+                            if (string.IsNullOrEmpty(cardholderName)) cardholderName = "Unknown";
+                        }
+                        
+                        Console.WriteLine($"   👤 PERSONID: {personId} -> Cardholder: {cardholderName}");
+
                         // Show EMPID (employee ID) - handle both string and numeric types
                         string empId = "N/A";
                         if (props.TryGetProperty("EMPID", out var eid))
@@ -174,7 +233,7 @@ class Program
                         Console.WriteLine("   All properties:");
                         foreach (var prop in props.EnumerateObject())
                         {
-                            if (prop.Name != "EMPID") // Already shown above
+                            if (prop.Name != "EMPID" && prop.Name != "PERSONID") // Already shown above
                             {
                                 Console.WriteLine($"     {prop.Name}: {prop.Value}");
                             }
@@ -187,8 +246,8 @@ class Program
                     Console.WriteLine();
                 }
 
-                // Step 3: Show all badges with their badge_id and EMPID
-                Console.WriteLine("[3] Complete list of ALL badges (badge ID and EMPID):");
+                // Step 4: Show all badges with their badge_id, PERSONID and Cardholder Name
+                Console.WriteLine("[4] Complete list of ALL badges (badge ID, PERSONID, Cardholder Name):");
                 Console.WriteLine();
 
                 badgeItems = badgeDoc.RootElement.GetProperty("item_list").EnumerateArray();
@@ -197,35 +256,32 @@ class Program
                     var props = badge.GetProperty("property_value_map");
                     var badgeId = GetBadgeId(props) ?? "N/A";
                     
-                    // Handle EMPID as both string and numeric
-                    string empId = "N/A";
-                    if (props.TryGetProperty("EMPID", out var eid))
+                    // Get PERSONID
+                    string personId = "N/A";
+                    if (props.TryGetProperty("PERSONID", out var pid))
                     {
-                        empId = eid.ValueKind == JsonValueKind.Number 
-                            ? eid.GetInt64().ToString() 
-                            : eid.GetString() ?? "N/A";
+                        personId = pid.ValueKind == JsonValueKind.Number 
+                            ? pid.GetInt64().ToString() 
+                            : pid.GetString() ?? "N/A";
+                    }
+                    
+                    // Look up cardholder name
+                    string cardholderName = "Unknown";
+                    if (personId != "N/A" && cardholderLookup.TryGetValue(personId, out var chInfo))
+                    {
+                        cardholderName = $"{chInfo.FirstName} {chInfo.LastName}".Trim();
+                        if (string.IsNullOrEmpty(cardholderName)) cardholderName = "Unknown";
                     }
 
-                    Console.WriteLine($"Badge ID {badgeId} -> Employee ID {empId}");
+                    Console.WriteLine($"Badge ID {badgeId} -> PERSONID {personId} -> {cardholderName}");
                 }
                 Console.WriteLine();
 
-                // Step 4: Find cardholder with TESTFIELD123 and check their badge associations
-                Console.WriteLine("[4] Finding TESTFIELD123 cardholder and their badge associations...");
-                var cardholderUrl = $"{baseUrl}/instances?type_name=Lnl_Cardholder&page_size=100&version=1.0";
-                var cardholderResponse = await client.GetAsync(cardholderUrl);
-
-                if (!cardholderResponse.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"❌ Cardholder query failed: {cardholderResponse.StatusCode}");
-                    var error = await cardholderResponse.Content.ReadAsStringAsync();
-                    Console.WriteLine($"Error: {error}");
-                    return;
-                }
-
-                var cardholderJson = await cardholderResponse.Content.ReadAsStringAsync();
-                var cardholderDoc = JsonDocument.Parse(cardholderJson);
-                var cardholders = cardholderDoc.RootElement.GetProperty("item_list").EnumerateArray();
+                // Step 5: Find cardholder with TESTFIELD123 and check their badge associations
+                Console.WriteLine("[5] Finding TESTFIELD123 cardholder and their badge associations...");
+                
+                // Re-enumerate cardholders from the already-fetched data
+                cardholders = cardholderDoc.RootElement.GetProperty("item_list").EnumerateArray();
 
                 JsonElement? testFieldCardholder = null;
                 foreach (var cardholder in cardholders)
@@ -331,10 +387,10 @@ class Program
                     Console.WriteLine("❌ No cardholder with TESTFIELD123 found");
                 }
 
-                // Step 5: Summary
+                // Step 6: Summary
                 Console.WriteLine("=== SUMMARY ===");
                 Console.WriteLine("• Using multiple field names (ID, badge_id, BADGEID) for badge identification");
-                Console.WriteLine("• Handling both string and numeric value types");
+                Console.WriteLine("• Showing PERSONID with corresponding Cardholder FirstName/LastName");
                 Console.WriteLine("• Target badge IDs: 607, 789, 613");
                 Console.WriteLine();
 
