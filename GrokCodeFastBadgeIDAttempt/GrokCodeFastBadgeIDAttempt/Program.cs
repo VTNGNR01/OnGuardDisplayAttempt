@@ -20,11 +20,17 @@ class Program
                 // Handle both numeric and string value types
                 if (element.ValueKind == JsonValueKind.Number)
                 {
-                    return element.GetInt64().ToString();
+                    // Use TryGetInt64 to safely handle different numeric types
+                    if (element.TryGetInt64(out var longValue))
+                    {
+                        return longValue.ToString();
+                    }
+                    // Fall back to raw text for other numeric formats
+                    return element.GetRawText();
                 }
                 else if (element.ValueKind == JsonValueKind.String)
                 {
-                    return element.GetString();
+                    return element.GetString() ?? null;
                 }
             }
         }
